@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Branch Information</title>
+    <script src="/static/jquery-3.7.1.min.js"></script>
+    <script src="/static/bootstrap-4.6.2-dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/bootstrap-4.6.2-dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <!-- 导航栏 -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="/branch">旅游分公司</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/tour_guide">导游</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link " href="/tour_route">旅游路线</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/tour_group">旅游团</a>
+        </li>
+    </ul>
+
+    <!-- 表格 -->
+    <h1>分公司信息</h1>
+    <button class="btn btn-success" id="add" href="#" data-toggle="modal" data-target="#exampleModal2">新增</button>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">公司名</th>
+            <th scope="col">经理名</th>
+            <th scope="col">地址</th>
+            <th scope="col">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range $index, $branch := .results}}
+        <tr>
+            <th scope="row">{{$branch.BranchID}}</th>
+            <td>{{$branch.BranchName}}</td>
+            <td>{{$branch.ManagerName}}</td>
+            <td>{{$branch.Address}}</td>
+            <td>
+                <button class="btn btn-warning change" href="#" data-toggle="modal" data-target="#exampleModal1"
+                        data-branch-id="{{$branch.BranchID}}">修改
+                </button>
+            </td>
+        </tr>
+        {{else}}
+        <tr>
+            <td colspan="4" class="text-center">No branches found</td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+
+    <!-- 分页插件 -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {{if gt .currentPage 1}}
+            <li class="page-item">
+                <a class="page-link" href="/branch?page={{sub .currentPage 1}}">Previous</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled">
+                <a class="page-link">Previous</a>
+            </li>
+            {{end}}
+
+            {{range $i := (seq 1 .totalPages)}}
+            <li class="page-item {{if eq $i $.currentPage}}active{{end}}">
+                <a class="page-link" href="/branch?page={{$i}}">{{$i}}</a>
+            </li>
+            {{end}}
+
+            {{if lt .currentPage .totalPages}}
+            <li class="page-item">
+                <a class="page-link" href="/branch?page={{add .currentPage 1}}">Next</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled">
+                <a class="page-link">Next</a>
+            </li>
+            {{end}}
+        </ul>
+    </nav>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal1" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">分公司信息</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body" id="model-body1">
+                    <form method="post">
+                        <div class="form-group">
+                            <label for="id">ID</label>
+                            <input type="text" class="form-control" id="id" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="venture_name">公司名</label>
+                            <input type="text" class="form-control" id="venture_name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="executive_name">经理名</label>
+                            <input type="text" class="form-control" id="executive_name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address">地址</label>
+                            <input type="text" class="form-control" id="address">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submit_form">提交</button>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增分公司信息</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body" id="model-body2">
+                    <form method="post">
+                        <div class="form-group">
+                            <label for="venture_name_add">公司名</label>
+                            <input type="text" class="form-control" id="venture_name_add">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="executive_name_add">经理名</label>
+                            <input type="text" class="form-control" id="executive_name_add">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="address_add">地址</label>
+                            <input type="text" class="form-control" id="address_add">
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submit_add">提交</button>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+<script>
+    $(document).ready(function () {
+        // 监听按钮点击事件
+        $('.change').on('click', function () {
+            let branchID = $(this).data('branch-id');
+            let modalBody = $('#model-body1'); // 模态框内容
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: `/branch/${branchID}}`, // 替换为你的后端接口
+                method: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+                    // 填充模态框表单数据
+                    $('#id').val(response.branch_id);
+                    $('#venture_name').val(response.branch_name); // 填充分支机构名称
+                    $('#executive_name').val(response.manager_name); // 填充经理名称
+                    $('#address').val(response.address); // 填充地址
+                },
+                error: function (xhr, status, error) {
+                    modalBody.text('Failed to load period details.');
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        // 监听提交按钮点击事件
+        $('#submit_form').on('click', function (event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            // 获取表单数据
+            let formData = {
+                BranchID: $('#id').val(),
+                BranchName: $('#venture_name').val(), // 公司名
+                ManagerName: $('#executive_name').val(), // 经理名
+                Address: $('#address').val() // 地址
+            };
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: '/branch', // 替换为你的后端接口
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    console.log('Form submitted successfully:', response);
+
+                    // 成功提示并关闭模态框
+                    alert('提交成功');
+                    $('#exampleModal').modal('hide');
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error submitting form:', error);
+                    alert('提交失败，请重试');
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        // 监听提交按钮点击事件
+        $('#submit_add').on('click', function (event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            // 获取表单数据
+            let formData = {
+                BranchName: $('#venture_name_add').val(), // 公司名
+                ManagerName: $('#executive_name_add').val(), // 经理名
+                Address: $('#address_add').val() // 地址
+            };
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: '/branch/add',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    console.log('Form submitted successfully:', response);
+
+                    // 成功提示并关闭模态框
+                    alert('提交成功');
+                    $('#exampleModal').modal('hide');
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error submitting form:', error);
+                    alert('提交失败，请重试');
+                }
+            });
+        });
+    });
+
+</script>
+</html>

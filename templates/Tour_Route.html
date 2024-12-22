@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>旅游线路信息</title>
+    <script src="/static/jquery-3.7.1.min.js"></script>
+    <script src="/static/bootstrap-4.6.2-dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/bootstrap-4.6.2-dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <!-- 导航栏 -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" href="/branch">旅游分公司</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/tour_guide">导游</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="/tour_route">旅游路线</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/tour_group">旅游团</a>
+        </li>
+    </ul>
+
+    <!-- 表格 -->
+    <h1>旅游线路信息</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">线路名称</th>
+            <th scope="col">包含的地点</th>
+            <th scope="col">包含的景点</th>
+            <th scope="col">所属分公司</th>
+            <th scope="col">操作</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {{range $index, $tourGuide := .results}}
+        <tr>
+            <th scope="row">{{$tourGuide.RouteID}}</th>
+            <td>{{$tourGuide.RouteName}}</td>
+            <td>{{$tourGuide.Locations}}</td>
+            <td>{{$tourGuide.Attractions}}</td>
+            <td>{{$tourGuide.BranchName}}</td>
+            <td>
+                <button class="btn btn-warning change" href="#" data-toggle="modal" data-target="#exampleModal"
+                        data-route-id="{{$tourGuide.RouteID}}">修改
+                </button>
+                <button class="btn badge-danger delete" data-route-id="{{$tourGuide.RouteID}}">删除</button>
+            </td>
+        </tr>
+        {{else}}
+        <tr>
+            <td colspan="4" class="text-center">No tour guide found</td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+
+    <!-- 分页插件 -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {{if gt .currentPage 1}}
+            <li class="page-item">
+                <a class="page-link" href="/tour_route?page={{sub .currentPage 1}}">Previous</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled">
+                <a class="page-link">Previous</a>
+            </li>
+            {{end}}
+
+            {{range $i := (seq 1 .totalPages)}}
+            <li class="page-item {{if eq $i $.currentPage}}active{{end}}">
+                <a class="page-link" href="/tour_route?page={{$i}}">{{$i}}</a>
+            </li>
+            {{end}}
+
+            {{if lt .currentPage .totalPages}}
+            <li class="page-item">
+                <a class="page-link" href="/tour_route?page={{add .currentPage 1}}">Next</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled">
+                <a class="page-link">Next</a>
+            </li>
+            {{end}}
+        </ul>
+    </nav>
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">旅游团详情</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <form method="post">
+                        <div class="form-group">
+                            <label for="id">ID</label>
+                            <input type="text" class="form-control" id="id" disabled>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="route_name">线路名称</label>
+                            <input type="text" class="form-control" id="route_name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="locations">包含的地点</label>
+                            <input type="text" class="form-control" id="locations">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="attractions">包含的景点</label>
+                            <input type="text" class="form-control" id="attractions">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submit_form">提交</button>
+                    </form>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(document).ready(function () {
+        // 监听按钮点击事件
+        $('.change').on('click', function () {
+            let routeID = $(this).data('route-id');
+            let modalBody = $('.modal-body'); // 模态框内容
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: `/tour_route/${routeID}}`, // 替换为你的后端接口
+                method: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+                    // 填充模态框表单数据
+                    $('#id').val(response.route_id);
+                    $('#route_name').val(response.route_name);
+                    $('#locations').val(response.locations);
+                    $('#attractions').val(response.attractions);
+                },
+                error: function (xhr, status, error) {
+                    modalBody.text('Failed to load period details.');
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        // 监听提交按钮点击事件
+        $('#submit_form').on('click', function (event) {
+            event.preventDefault(); // 阻止表单默认提交行为
+
+            // 获取表单数据
+            let formData = {
+                RouteID: $('#id').val(),
+                RouteName: $('#route_name').val(),
+                Locations: $('#locations').val(),
+                Attractions: $('#attractions').val()
+            };
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: '/tour_route', // 替换为你的后端接口
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function (response) {
+                    console.log('Form submitted successfully:', response);
+
+                    // 成功提示并关闭模态框
+                    alert('提交成功');
+                    $('#exampleModal').modal('hide');
+                    location.reload();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error submitting form:', error);
+                    alert('提交失败，请重试');
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        // 监听按钮点击事件
+        $('.delete').on('click', function () {
+            let routeID = $(this).data('route-id');
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: `/tour_route/delete/${routeID}`, // 替换为你的后端接口
+                method: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    alert('删除成功');
+                },
+                error: function (xhr, status, error) {
+                    alert('存在约束关系，删除失败');
+                }
+            });
+        });
+    });
+
+</script>
+</html>

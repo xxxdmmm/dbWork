@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Branch Information</title>
+    <script src="/static/jquery-3.7.1.min.js"></script>
+    <script src="/static/bootstrap-4.6.2-dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/static/bootstrap-4.6.2-dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <!-- 导航栏 -->
+    <ul class="nav nav-tabs">
+        <li class="nav-item">
+            <a class="nav-link" href="/branch">旅游分公司</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/tour_guide">导游</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link " href="/tour_route">旅游路线</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" href="/tour_group">旅游团</a>
+        </li>
+    </ul>
+
+    <!-- 表格 -->
+    <h1>旅游团信息</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">线路名称</th>
+            <th scope="col">导游名</th>
+            <th scope="col">详情</th>
+            <th scope="col">团员</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {{range $index, $tourGroup := .results}}
+        <tr>
+            <th scope="row">{{$tourGroup.GroupID}}</th>
+            <td>{{$tourGroup.RouteName}}</td>
+            <td>{{$tourGroup.GuideName}}</td>
+            <td>
+                <button class="btn btn-primary period" href="#" data-toggle="modal" data-target="#exampleModal"
+                        data-period-id="{{$tourGroup.PeriodID}}">查看详情
+                </button>
+            </td>
+            <td>
+                <button class="btn btn-primary member" href="#" data-toggle="modal" data-target="#exampleModal"
+                        data-group-id="{{$tourGroup.GroupID}}">查看团员
+                </button>
+            </td>
+        </tr>
+        {{else}}
+        <tr>
+            <td colspan="4" class="text-center">No tour guide found</td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+
+    <!-- 分页插件 -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            {{if gt .currentPage 1}}
+            <li class="page-item">
+                <a class="page-link" href="/tour_group?page={{sub .currentPage 1}}">Previous</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled">
+                <a class="page-link">Previous</a>
+            </li>
+            {{end}}
+
+            {{range $i := (seq 1 .totalPages)}}
+            <li class="page-item {{if eq $i $.currentPage}}active{{end}}">
+                <a class="page-link" href="/tour_group?page={{$i}}">{{$i}}</a>
+            </li>
+            {{end}}
+
+            {{if lt .currentPage .totalPages}}
+            <li class="page-item">
+                <a class="page-link" href="/tour_group?page={{add .currentPage 1}}">Next</a>
+            </li>
+            {{else}}
+            <li class="page-item disabled">
+                <a class="page-link">Next</a>
+            </li>
+            {{end}}
+        </ul>
+    </nav>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">旅游团详情</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    ...
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+<script>
+    $(document).ready(function () {
+        // 监听按钮点击事件
+        $('.period').on('click', function () {
+            let periodId = $(this).data('period-id'); // 获取 PeriodID
+            let modalBody = $('.modal-body'); // 模态框内容
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: '/tour_group/period', // 替换为你的后端接口
+                method: 'GET',
+                data: {period_id: periodId},
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response)
+                    // 更新模态框内容
+                    modalBody.html(`
+                        <ul class="list-group">
+                          <li class="list-group-item">开始时间: ${response.end_date}</li>
+                          <li class="list-group-item">结束时间: ${response.start_date}</li>
+                          <li class="list-group-item">价格: ${response.price}</li>
+                          <li class="list-group-item">交通方式: ${response.transportation}</li>
+                          <li class="list-group-item">服务等级: ${response.service_level}</li>
+                        </ul>
+                    `);
+                },
+                error: function (xhr, status, error) {
+                    modalBody.text('Failed to load period details.');
+                }
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        // 监听按钮点击事件
+        $('.member').on('click', function () {
+            let groupID = $(this).data('group-id'); // 获取 PeriodID
+            let modalBody = $('.modal-body'); // 模态框内容
+
+            // 发起 AJAX 请求
+            $.ajax({
+                url: '/tour_group/member', // 替换为你的后端接口
+                method: 'GET',
+                data: {group_id: groupID},
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response);
+
+                    // 清空模态框内容
+                    let modalBody = $(".modal-body");
+                    modalBody.html('<ul class="list-group"></ul>');
+
+                    // 遍历 JSON 数组并生成 HTML
+                    let listGroup = modalBody.find('.list-group');
+
+                    // 如果数组为空，显示提示信息
+                    if (response === null) {
+                        listGroup.append(`
+                            <li class="list-group-item text-center text-muted">
+                                暂无数据
+                            </li>
+                        `);
+                        return
+                    }
+
+                    response.forEach(item => {
+                        listGroup.append(`
+                          <li class="list-group-item">
+                             <strong>姓名:</strong> ${item.name} <br>
+                             <strong>ID卡:</strong> ${item.id_card} <br>
+                             <strong>单位:</strong> ${item.employer}
+                           </li>
+                        `);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    modalBody.text('Failed to load period details.');
+                }
+            });
+        });
+    });
+</script>
+</html>
